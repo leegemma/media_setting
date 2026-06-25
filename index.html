@@ -1,0 +1,1006 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>미디어 운영팀 세팅요청판</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #f5f6f8;
+    --surface: #ffffff;
+    --border: #e2e5ea;
+    --text-primary: #1a1d23;
+    --text-secondary: #5a6175;
+    --text-muted: #9aa0b0;
+    --accent: #3b5bdb;
+    --accent-light: #eef1fd;
+    --urgent: #e03131;
+    --urgent-light: #fff5f5;
+    --today: #f08c00;
+    --today-light: #fff8e6;
+    --hold: #7c5cbf;
+    --hold-light: #f3f0fa;
+    --done: #2f9e44;
+    --done-light: #ebfbee;
+    --badge-radius: 4px;
+    --card-radius: 10px;
+    --shadow: 0 1px 4px rgba(0,0,0,0.07), 0 4px 16px rgba(0,0,0,0.04);
+  }
+
+  body {
+    font-family: 'Noto Sans KR', sans-serif;
+    background: var(--bg);
+    color: var(--text-primary);
+    font-size: 14px;
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+
+  /* ── HEADER ── */
+  .page-header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 20px 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .page-header h1 {
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: -0.3px;
+  }
+  .page-header .team-badge {
+    background: var(--accent-light);
+    color: var(--accent);
+    font-size: 12px;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 20px;
+  }
+
+  /* ── NAV TABS ── */
+  .nav-tabs {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 0 32px;
+    display: flex;
+    gap: 0;
+    overflow-x: auto;
+  }
+  .nav-tab {
+    padding: 14px 20px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-muted);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    white-space: nowrap;
+    transition: all 0.18s ease;
+    user-select: none;
+  }
+  .nav-tab:hover { color: var(--text-primary); }
+  .nav-tab.active {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+    font-weight: 700;
+  }
+
+  /* ── LAYOUT ── */
+  .main-content {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 28px 24px;
+  }
+
+  /* ── SECTION PANEL ── */
+  .section-panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--card-radius);
+    box-shadow: var(--shadow);
+    margin-bottom: 16px;
+    overflow: hidden;
+  }
+
+  .panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    cursor: pointer;
+    user-select: none;
+    transition: background 0.15s;
+  }
+  .panel-header:hover { background: #fafbfc; }
+
+  .panel-header-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .panel-icon {
+    width: 30px;
+    height: 30px;
+    border-radius: 7px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 15px;
+    flex-shrink: 0;
+  }
+  .panel-title {
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: -0.2px;
+  }
+  .panel-desc {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-top: 1px;
+  }
+  .chevron {
+    font-size: 12px;
+    color: var(--text-muted);
+    transition: transform 0.22s ease;
+  }
+  .panel-header.open .chevron { transform: rotate(180deg); }
+
+  .panel-body {
+    display: none;
+    padding: 0 20px 20px;
+    border-top: 1px solid var(--border);
+  }
+  .panel-body.open { display: block; }
+
+  /* ── RULE ITEM ── */
+  .rule-list { margin-top: 14px; display: flex; flex-direction: column; gap: 8px; }
+
+  .rule-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 12px 14px;
+    background: var(--bg);
+    border-radius: 7px;
+    border-left: 3px solid var(--border);
+  }
+  .rule-item.warn { border-left-color: var(--today); background: #fffbf2; }
+  .rule-item.danger { border-left-color: var(--urgent); background: var(--urgent-light); }
+  .rule-item.info { border-left-color: var(--accent); background: var(--accent-light); }
+
+  .rule-num {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text-muted);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 1px 6px;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+  .rule-text { font-size: 13px; line-height: 1.65; color: var(--text-primary); }
+  .rule-text strong { color: var(--text-primary); font-weight: 700; }
+  .rule-text .highlight { color: var(--urgent); font-weight: 600; }
+
+  /* ── TABLE ── */
+  .data-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 14px;
+    font-size: 13px;
+  }
+  .data-table th {
+    background: var(--bg);
+    color: var(--text-secondary);
+    font-weight: 600;
+    padding: 9px 14px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
+  .data-table td {
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+    line-height: 1.6;
+  }
+  .data-table tr:last-child td { border-bottom: none; }
+  .data-table tr:hover td { background: #fafbfc; }
+
+  /* ── BADGE ── */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 3px 9px;
+    border-radius: var(--badge-radius);
+    letter-spacing: 0.2px;
+  }
+  .badge.urgent { background: var(--urgent-light); color: var(--urgent); }
+  .badge.today { background: var(--today-light); color: var(--today); }
+  .badge.hold { background: var(--hold-light); color: var(--hold); }
+  .badge.done { background: var(--done-light); color: var(--done); }
+  .badge.normal { background: var(--bg); color: var(--text-secondary); border: 1px solid var(--border); }
+  .badge.processing { background: #e8f4fd; color: #1971c2; }
+  .badge.review { background: #fff3e0; color: #e65100; }
+  .badge.confirm { background: #f3e5f5; color: #7b1fa2; }
+
+  /* ── PRIORITY FLOW ── */
+  .priority-flow {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    flex-wrap: wrap;
+    margin-top: 14px;
+    background: var(--bg);
+    border-radius: 7px;
+    padding: 12px 16px;
+    gap: 4px;
+  }
+  .pf-item {
+    font-size: 12px;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 4px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
+  }
+  .pf-item.top { background: var(--urgent-light); color: var(--urgent); border-color: #fcc; }
+  .pf-item.mid { background: var(--today-light); color: var(--today); border-color: #fde68a; }
+  .pf-arrow { font-size: 11px; color: var(--text-muted); padding: 0 2px; }
+
+  /* ── STATUS GRID ── */
+  .status-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 10px;
+    margin-top: 14px;
+  }
+  .status-card {
+    border-radius: 8px;
+    padding: 14px 16px;
+    border: 1px solid var(--border);
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  .status-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    margin-top: 4px;
+  }
+  .status-card-title { font-size: 13px; font-weight: 700; margin-bottom: 3px; }
+  .status-card-desc { font-size: 12px; color: var(--text-secondary); line-height: 1.5; }
+
+  /* ── INFO BOX ── */
+  .info-box {
+    background: var(--accent-light);
+    border: 1px solid #c5d0fa;
+    border-radius: 7px;
+    padding: 12px 16px;
+    font-size: 13px;
+    line-height: 1.7;
+    margin-top: 14px;
+    color: #2d3a8c;
+  }
+  .info-box strong { font-weight: 700; }
+
+  .warn-box {
+    background: var(--today-light);
+    border: 1px solid #fde68a;
+    border-radius: 7px;
+    padding: 12px 16px;
+    font-size: 13px;
+    line-height: 1.7;
+    margin-top: 14px;
+    color: #7c4f00;
+  }
+
+  /* ── FLOW STEPS ── */
+  .flow-block { margin-top: 14px; display: flex; flex-direction: column; gap: 10px; }
+  .flow-row {
+    background: var(--bg);
+    border-radius: 7px;
+    padding: 12px 14px;
+  }
+  .flow-label {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    margin-bottom: 7px;
+  }
+  .flow-steps {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+  .flow-step {
+    font-size: 12px;
+    font-weight: 500;
+    padding: 4px 10px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    color: var(--text-primary);
+  }
+  .flow-step.accent { background: var(--accent-light); color: var(--accent); border-color: #b0c4ff; }
+  .flow-arrow { font-size: 10px; color: var(--text-muted); }
+
+  /* ── CHECKLIST ── */
+  .checklist { margin-top: 14px; display: flex; flex-direction: column; gap: 10px; }
+  .check-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 12px 14px;
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    cursor: pointer;
+    transition: background 0.15s;
+    user-select: none;
+  }
+  .check-row:hover { background: var(--bg); }
+  .check-row.checked { background: var(--done-light); border-color: #a9e3b5; }
+  .check-box {
+    width: 18px;
+    height: 18px;
+    border-radius: 4px;
+    border: 2px solid var(--border);
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 1px;
+    transition: all 0.15s;
+    font-size: 10px;
+    color: transparent;
+    background: var(--surface);
+  }
+  .check-row.checked .check-box {
+    background: var(--done);
+    border-color: var(--done);
+    color: white;
+  }
+  .check-num {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text-muted);
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 1px 6px;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+  .check-row.checked .check-num { opacity: 0.5; }
+  .check-body { flex: 1; }
+  .check-title { font-size: 13px; font-weight: 600; }
+  .check-sub { font-size: 12px; color: var(--text-secondary); margin-top: 3px; }
+  .check-row.checked .check-title, .check-row.checked .check-sub { text-decoration: line-through; opacity: 0.6; }
+
+  /* ── REQUIRED FIELDS ── */
+  .req-grid { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 14px; }
+  .req-card {
+    border-radius: 7px;
+    border: 1px solid var(--border);
+    padding: 12px 16px;
+    flex: 1;
+    min-width: 180px;
+  }
+  .req-card-label { font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+  .req-tags { display: flex; flex-wrap: wrap; gap: 5px; }
+  .req-tag {
+    font-size: 12px;
+    font-weight: 500;
+    padding: 3px 9px;
+    border-radius: 4px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
+  }
+  .req-tag.required { background: var(--urgent-light); color: var(--urgent); border-color: #fcc; font-weight: 700; }
+
+  /* ── PAGE SECTIONS ── */
+  .tab-section { display: none; }
+  .tab-section.active { display: block; }
+
+  /* ── NOTICE STRIP ── */
+  .notice-strip {
+    background: var(--urgent-light);
+    border: 1px solid #fcc;
+    border-radius: 7px;
+    padding: 10px 16px;
+    font-size: 13px;
+    color: var(--urgent);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 20px;
+  }
+
+  /* ── DIVIDER ── */
+  .section-divider {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    padding: 16px 0 8px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 4px;
+  }
+
+  /* scroll */
+  ::-webkit-scrollbar { width: 5px; height: 5px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<header class="page-header">
+  <div style="display:flex;align-items:center;gap:12px;">
+    <span style="font-size:20px;">📋</span>
+    <h1>미디어 운영팀 세팅요청판</h1>
+  </div>
+  <span class="team-badge">운영팀 내부문서</span>
+</header>
+
+<!-- NAV -->
+<nav class="nav-tabs">
+  <div class="nav-tab active" onclick="switchTab('overview')">📌 공통 안내</div>
+  <div class="nav-tab" onclick="switchTab('urgent')">🚨 긴급건</div>
+  <div class="nav-tab" onclick="switchTab('request')">📝 요청판 작성요령</div>
+  <div class="nav-tab" onclick="switchTab('workflow')">🔄 업무 흐름</div>
+  <div class="nav-tab" onclick="switchTab('checklist')">✅ 세팅 체크리스트</div>
+</nav>
+
+<main class="main-content">
+
+<!-- ════ TAB 1: 공통 안내 ════ -->
+<div class="tab-section active" id="tab-overview">
+
+  <div class="notice-strip">
+    ⚠️ 이슈 및 요청사항은 가급적 <strong style="margin:0 4px;">오전 중 공유</strong>가 기본입니다. 오후 4시 이후 요청건은 익영업일 처리될 수 있습니다.
+  </div>
+
+  <!-- 공통 주의사항 -->
+  <div class="section-panel">
+    <div class="panel-header open" onclick="togglePanel(this)">
+      <div class="panel-header-left">
+        <div class="panel-icon" style="background:#eef1fd;">📋</div>
+        <div>
+          <div class="panel-title">공통 주의사항</div>
+          <div class="panel-desc">모든 세팅 요청 시 반드시 숙지</div>
+        </div>
+      </div>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="panel-body open">
+      <div class="rule-list">
+        <div class="rule-item info">
+          <div class="rule-num">요청기준</div>
+          <div class="rule-text"><strong>모든 세팅 요청은 문서/시트 기반 진행</strong></div>
+        </div>
+        <div class="rule-item">
+          <div class="rule-num">책임</div>
+          <div class="rule-text">요청 책임 ≠ 실행 책임 — 요청이 틀린 것과 세팅 실수는 다릅니다</div>
+        </div>
+        <div class="rule-item warn">
+          <div class="rule-num">긴급요청</div>
+          <div class="rule-text"><strong>긴급 사유 명시 필수</strong>, 급한 요청 남발 방지</div>
+        </div>
+        <div class="rule-item">
+          <div class="rule-num">세팅보류</div>
+          <div class="rule-text">이상 요청 발견 시 보류 처리 후 확인 요청 가능</div>
+        </div>
+        <div class="rule-item">
+          <div class="rule-num">로그</div>
+          <div class="rule-text">요청/수정 <strong>이력 남기기 필수</strong></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 시간 기준 -->
+  <div class="section-panel">
+    <div class="panel-header open" onclick="togglePanel(this)">
+      <div class="panel-header-left">
+        <div class="panel-icon" style="background:#fff8e6;">⏰</div>
+        <div>
+          <div class="panel-title">시간 기준 안내</div>
+          <div class="panel-desc">오후 4시 기준으로 처리 여부 달라짐</div>
+        </div>
+      </div>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="panel-body open">
+      <div class="rule-list">
+        <div class="rule-item info">
+          <div class="rule-text">이슈 및 요청사항은 가급적 <span class="highlight">오전 중 공유</span>가 기본입니다</div>
+        </div>
+        <div class="rule-item">
+          <div class="rule-text">당일 적용이 필요한 소재 및 세팅 요청건은 <strong>오후 4시 이전</strong> 전달해주세요</div>
+        </div>
+        <div class="rule-item warn">
+          <div class="rule-text">오후 4시 이후 요청건은 <strong>익영업일 처리</strong>가 될 수 있습니다</div>
+        </div>
+        <div class="rule-item">
+          <div class="rule-text">처리중인 긴급건이 있다면 기존 긴급건을 우선 처리 (변경 필요한 경우 보류 처리)</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ════ TAB 2: 긴급건 ════ -->
+<div class="tab-section" id="tab-urgent">
+
+  <!-- 긴급건 주의사항 -->
+  <div class="section-panel">
+    <div class="panel-header open" onclick="togglePanel(this)">
+      <div class="panel-header-left">
+        <div class="panel-icon" style="background:#fff5f5;">🚨</div>
+        <div>
+          <div class="panel-title">긴급건 주의사항</div>
+          <div class="panel-desc">긴급 요청 전 필수 확인</div>
+        </div>
+      </div>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="panel-body open">
+      <div class="rule-list">
+        <div class="rule-item danger">
+          <div class="rule-num">1</div>
+          <div class="rule-text">긴급 요청은 요청자가 아닌 <strong>세팅팀이 최종 판단</strong>합니다. 작성 후 <strong>단톡방을 통해 경로와 사유 노티 필요</strong></div>
+        </div>
+        <div class="rule-item warn">
+          <div class="rule-num">2</div>
+          <div class="rule-text">긴급 요청이 접수되더라도 기존 긴급건과 동일 경우 <strong>우선순위에 따라 순차 처리</strong></div>
+        </div>
+        <div class="rule-item warn">
+          <div class="rule-num">3</div>
+          <div class="rule-text">긴급 요청 남용 방지를 위해 <strong>긴급 사유를 단톡방을 통해 필수로 전달</strong>해야합니다</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 긴급건 기준 -->
+  <div class="section-panel">
+    <div class="panel-header open" onclick="togglePanel(this)">
+      <div class="panel-header-left">
+        <div class="panel-icon" style="background:#fff5f5;">📊</div>
+        <div>
+          <div class="panel-title">긴급건 기준</div>
+          <div class="panel-desc">긴급 vs 일반 구분 기준</div>
+        </div>
+      </div>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="panel-body open">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th style="width:90px;">구분</th>
+            <th>기준</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="badge urgent">긴급</span></td>
+            <td>당일 광고 집행, 광고주 효율 이슈, 다량의 세팅건 요청 시</td>
+          </tr>
+          <tr>
+            <td><span class="badge normal">일반</span></td>
+            <td>신규 캠페인, 소재 추가, 타겟 수정, 보고용 수정 등 단순 수정건</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div style="margin-top:16px;">
+        <div style="font-size:12px;font-weight:700;color:var(--text-muted);margin-bottom:8px;">처리 우선순위</div>
+        <div class="priority-flow">
+          <div class="pf-item top">긴급</div>
+          <div class="pf-arrow">›</div>
+          <div class="pf-item mid">당일</div>
+          <div class="pf-arrow">›</div>
+          <div class="pf-item">영업실 기획건</div>
+          <div class="pf-arrow">›</div>
+          <div class="pf-item">기획팀 요청건</div>
+          <div class="pf-arrow">›</div>
+          <div class="pf-item">세팅팀 작성건</div>
+          <div class="pf-arrow">›</div>
+          <div class="pf-item">콘텐츠실 기획건</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ════ TAB 3: 요청판 작성요령 ════ -->
+<div class="tab-section" id="tab-request">
+
+  <!-- 구분 -->
+  <div class="section-panel">
+    <div class="panel-header open" onclick="togglePanel(this)">
+      <div class="panel-header-left">
+        <div class="panel-icon" style="background:#eef1fd;">🏷️</div>
+        <div>
+          <div class="panel-title">구분 (긴급 / 당일)</div>
+          <div class="panel-desc">요청 유형별 작성 방법</div>
+        </div>
+      </div>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="panel-body open">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th style="width:80px;">구분</th>
+            <th>설명</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="badge urgent">긴급</span></td>
+            <td>팀장에게 문의 후 긴급 작성, 당일 세팅건보다 <strong>우선시</strong> 됨</td>
+          </tr>
+          <tr>
+            <td><span class="badge today">당일</span></td>
+            <td>완료일자가 당일인 요청건. <strong style="color:var(--urgent);">한 광고주당 5개 미만</strong> 설정 가능</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="info-box" style="margin-top:14px;">
+        📌 긴급/당일 요청건은 <strong>A열에 기입 후 팀장에게 행열 공유</strong>주세요 (누락방지)<br>
+        └ 영업실/콘텐츠실 세팅건 기재 시 누락되지 않도록 노티 바랍니다.
+      </div>
+
+      <div style="margin-top:14px;">
+        <div style="font-size:12px;font-weight:700;color:var(--text-muted);margin-bottom:8px;">업무처리 순서</div>
+        <div class="priority-flow">
+          <div class="pf-item top">긴급건</div>
+          <div class="pf-arrow">›</div>
+          <div class="pf-item mid">당일건</div>
+          <div class="pf-arrow">›</div>
+          <div class="pf-item">영업실 기획건</div>
+          <div class="pf-arrow">›</div>
+          <div class="pf-item">기획팀 요청건</div>
+          <div class="pf-arrow">›</div>
+          <div class="pf-item">세팅팀 작성건</div>
+          <div class="pf-arrow">›</div>
+          <div class="pf-item">콘텐츠실 기획건</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 처리 현황 -->
+  <div class="section-panel">
+    <div class="panel-header open" onclick="togglePanel(this)">
+      <div class="panel-header-left">
+        <div class="panel-icon" style="background:#ebfbee;">📊</div>
+        <div>
+          <div class="panel-title">처리 현황 상태값</div>
+          <div class="panel-desc">세팅 담당자가 본인의 처리 과정을 공유하기 위해 기재</div>
+        </div>
+      </div>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="panel-body open">
+      <div class="status-grid">
+        <div class="status-card">
+          <div class="status-dot" style="background:#9aa0b0;"></div>
+          <div>
+            <div class="status-card-title">요청확인</div>
+            <div class="status-card-desc">요청건 내용을 확인 중입니다</div>
+          </div>
+        </div>
+        <div class="status-card" style="background:#e8f4fd;border-color:#b3d9f7;">
+          <div class="status-dot" style="background:#1971c2;"></div>
+          <div>
+            <div class="status-card-title" style="color:#1971c2;">처리중</div>
+            <div class="status-card-desc">해당 세팅건 진행 중입니다</div>
+          </div>
+        </div>
+        <div class="status-card" style="background:#fff3e0;border-color:#ffcc80;">
+          <div class="status-dot" style="background:#e65100;"></div>
+          <div>
+            <div class="status-card-title" style="color:#e65100;">매체검토중</div>
+            <div class="status-card-desc">세팅 완료, 매체 심사 진행 중</div>
+          </div>
+        </div>
+        <div class="status-card" style="background:#f3e5f5;border-color:#ce93d8;">
+          <div class="status-dot" style="background:#7b1fa2;"></div>
+          <div>
+            <div class="status-card-title" style="color:#7b1fa2;">요청자 컨펌대기</div>
+            <div class="status-card-desc">세팅 완료, 요청자의 지면 확인 대기 중</div>
+          </div>
+        </div>
+        <div class="status-card" style="background:var(--hold-light);border-color:#c4b0e8;">
+          <div class="status-dot" style="background:var(--hold);"></div>
+          <div>
+            <div class="status-card-title" style="color:var(--hold);">보류</div>
+            <div class="status-card-desc">세팅 진행 불가, 사유 기재 및 보류처리</div>
+          </div>
+        </div>
+        <div class="status-card" style="background:var(--done-light);border-color:#a9e3b5;">
+          <div class="status-dot" style="background:var(--done);"></div>
+          <div>
+            <div class="status-card-title" style="color:var(--done);">완료</div>
+            <div class="status-card-desc">세팅이 완료되었습니다</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 토글 항목 -->
+  <div class="section-panel">
+    <div class="panel-header open" onclick="togglePanel(this)">
+      <div class="panel-header-left">
+        <div class="panel-icon" style="background:#f3f0fa;">🔽</div>
+        <div>
+          <div class="panel-title">토글 항목</div>
+          <div class="panel-desc">정해진 토글로만 세팅</div>
+        </div>
+      </div>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="panel-body open">
+      <div class="info-box">
+        하기 토글은 정해진 토글로만 세팅해주세요.<br>
+        └ 매체나 광고주가 추가 필요한 경우 추가하여 전체 적용
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;">
+        <span class="req-tag" style="font-size:13px;padding:5px 14px;">매체</span>
+        <span class="req-tag" style="font-size:13px;padding:5px 14px;">광고주</span>
+        <span class="req-tag" style="font-size:13px;padding:5px 14px;">이벤트구분</span>
+        <span class="req-tag" style="font-size:13px;padding:5px 14px;">처리자</span>
+        <span class="req-tag" style="font-size:13px;padding:5px 14px;">처리현황</span>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ════ TAB 4: 업무 흐름 ════ -->
+<div class="tab-section" id="tab-workflow">
+
+  <!-- 세팅 요청 시 필수 공유 -->
+  <div class="section-panel">
+    <div class="panel-header open" onclick="togglePanel(this)">
+      <div class="panel-header-left">
+        <div class="panel-icon" style="background:#fff8e6;">📦</div>
+        <div>
+          <div class="panel-title">세팅 요청 시 공유 필수 내용</div>
+          <div class="panel-desc">요청 시 반드시 포함해야 하는 정보</div>
+        </div>
+      </div>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="panel-body open">
+      <div class="req-grid">
+        <div class="req-card">
+          <div class="req-card-label">최소 필수 항목</div>
+          <div class="req-tags">
+            <span class="req-tag required">소재</span>
+            <span class="req-tag required">랜딩</span>
+            <span class="req-tag required">세팅 문구</span>
+          </div>
+        </div>
+        <div class="req-card">
+          <div class="req-card-label">추가 항목</div>
+          <div class="req-tags">
+            <span class="req-tag">성별</span>
+            <span class="req-tag">나이</span>
+            <span class="req-tag">지역</span>
+            <span class="req-tag">지면</span>
+            <span class="req-tag">관심사</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 유형별 업무 흐름 -->
+  <div class="section-panel">
+    <div class="panel-header open" onclick="togglePanel(this)">
+      <div class="panel-header-left">
+        <div class="panel-icon" style="background:#eef1fd;">🔄</div>
+        <div>
+          <div class="panel-title">유형별 세팅건 업무 흐름</div>
+          <div class="panel-desc">콘텐츠실 / 영업실 기획건 처리 경로</div>
+        </div>
+      </div>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="panel-body open">
+      <div class="flow-block">
+
+        <div class="flow-row">
+          <div class="flow-label">콘텐츠실 기획건 (소재)</div>
+          <div class="flow-steps">
+            <div class="flow-step">콘텐츠실 기획</div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-step">영업실 전달</div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-step">광고주 컨펌 완료</div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-step accent">콘텐츠실이 세팅요청판에 기재</div>
+          </div>
+        </div>
+
+        <div class="flow-row">
+          <div class="flow-label">콘텐츠실 기획건 (랜딩)</div>
+          <div class="flow-steps">
+            <div class="flow-step">콘텐츠실 랜딩 기획</div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-step">영업실이 개발</div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-step">광고주 컨펌 완료</div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-step accent">콘텐츠실이 세팅요청판에 기재</div>
+          </div>
+        </div>
+
+        <div class="flow-row">
+          <div class="flow-label">영업실 기획건</div>
+          <div class="flow-steps">
+            <div class="flow-step">영업실 기획</div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-step">광고주 컨펌 완료</div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-step accent">세팅요청판에 소재/랜딩/문구 작성</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ════ TAB 5: 세팅 체크리스트 ════ -->
+<div class="tab-section" id="tab-checklist">
+
+  <div class="warn-box">
+    💡 각 항목을 클릭하면 완료 처리됩니다. 페이지 새로고침 시 초기화됩니다.
+  </div>
+
+  <div style="margin-top:20px;">
+    <div class="section-divider">세팅건 확인 절차</div>
+  </div>
+
+  <div class="checklist" style="margin-top:12px;">
+
+    <div class="check-row" onclick="toggleCheck(this)">
+      <div class="check-box">✓</div>
+      <div class="check-num">1</div>
+      <div class="check-body">
+        <div class="check-title">세팅건 확인</div>
+        <div class="check-sub">지점별 컨디션 파악하여 세팅건 작성</div>
+      </div>
+    </div>
+
+    <div class="check-row" onclick="toggleCheck(this)">
+      <div class="check-box">✓</div>
+      <div class="check-num">2</div>
+      <div class="check-body">
+        <div class="check-title">단순 세팅건 우선처리</div>
+        <div class="check-sub">오전 중으로 처리 — 신규캠페인 / 유사 / 랜딩변경 등</div>
+      </div>
+    </div>
+
+    <div class="check-row" onclick="toggleCheck(this)">
+      <div class="check-box">✓</div>
+      <div class="check-num">3</div>
+      <div class="check-body">
+        <div class="check-title">영업실 / 콘텐츠실 / 운영팀 / 기획팀 요청건 처리</div>
+        <div class="check-sub">긴급도 표기하여 진행</div>
+      </div>
+    </div>
+
+    <div class="check-row" onclick="toggleCheck(this)">
+      <div class="check-box">✓</div>
+      <div class="check-num">4</div>
+      <div class="check-body">
+        <div class="check-title">소재 + 랜딩 + 세팅 문구 확인</div>
+        <div class="check-sub">최소 필수 항목 누락 여부 확인</div>
+      </div>
+    </div>
+
+    <div class="check-row" onclick="toggleCheck(this)">
+      <div class="check-box">✓</div>
+      <div class="check-num">5</div>
+      <div class="check-body">
+        <div class="check-title">긴급건 단톡방 노티 완료</div>
+        <div class="check-sub">긴급 요청인 경우 단톡방으로 경로/사유 전달</div>
+      </div>
+    </div>
+
+    <div class="check-row" onclick="toggleCheck(this)">
+      <div class="check-box">✓</div>
+      <div class="check-num">6</div>
+      <div class="check-body">
+        <div class="check-title">처리 현황 상태값 업데이트</div>
+        <div class="check-sub">요청확인 → 처리중 → 매체검토중 / 완료 등 상태 기재</div>
+      </div>
+    </div>
+
+    <div class="check-row" onclick="toggleCheck(this)">
+      <div class="check-box">✓</div>
+      <div class="check-num">7</div>
+      <div class="check-body">
+        <div class="check-title">로그 기록 남기기</div>
+        <div class="check-sub">요청/수정 이력 시트에 기재 완료</div>
+      </div>
+    </div>
+
+  </div>
+
+  <div style="margin-top:20px;padding:14px 16px;background:var(--bg);border-radius:8px;border:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
+    <span id="check-status" style="font-size:13px;font-weight:600;color:var(--text-secondary);">0 / 7 완료</span>
+    <button onclick="resetAll()" style="font-size:12px;font-weight:600;padding:6px 14px;border-radius:6px;border:1px solid var(--border);background:var(--surface);color:var(--text-muted);cursor:pointer;">초기화</button>
+  </div>
+
+</div>
+
+</main>
+
+<script>
+  function switchTab(id) {
+    document.querySelectorAll('.tab-section').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+    document.getElementById('tab-' + id).classList.add('active');
+    event.currentTarget.classList.add('active');
+  }
+
+  function togglePanel(header) {
+    header.classList.toggle('open');
+    const body = header.nextElementSibling;
+    body.classList.toggle('open');
+  }
+
+  function toggleCheck(row) {
+    row.classList.toggle('checked');
+    updateCheckStatus();
+  }
+
+  function updateCheckStatus() {
+    const total = document.querySelectorAll('.check-row').length;
+    const done = document.querySelectorAll('.check-row.checked').length;
+    const el = document.getElementById('check-status');
+    el.textContent = done + ' / ' + total + ' 완료';
+    el.style.color = done === total ? 'var(--done)' : 'var(--text-secondary)';
+  }
+
+  function resetAll() {
+    document.querySelectorAll('.check-row').forEach(r => r.classList.remove('checked'));
+    updateCheckStatus();
+  }
+</script>
+
+</body>
+</html>
